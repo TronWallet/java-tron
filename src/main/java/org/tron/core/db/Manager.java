@@ -62,6 +62,7 @@ import org.tron.common.utils.SessionOptional;
 import org.tron.common.utils.Sha256Hash;
 import org.tron.common.utils.StringUtil;
 import org.tron.core.Constant;
+import org.tron.core.actuator.DelegationService;
 import org.tron.core.capsule.AccountCapsule;
 import org.tron.core.capsule.BlockCapsule;
 import org.tron.core.capsule.BlockCapsule.BlockId;
@@ -121,6 +122,9 @@ import org.tron.protos.Protocol.TransactionInfo;
 public class Manager {
 
   // db store
+  @Getter
+  @Autowired
+  private DelegationStore delegationStore;
   @Autowired
   private AccountStore accountStore;
   @Autowired
@@ -259,6 +263,10 @@ public class Manager {
   @Autowired
   private TrieService trieService;
   private Set<String> ownerAddressSet = new HashSet<>();
+
+  @Getter
+  @Autowired
+  private DelegationService delegationService;
 
   public WitnessStore getWitnessStore() {
     return this.witnessStore;
@@ -472,6 +480,7 @@ public class Manager {
   @PostConstruct
   public void init() {
     Message.setManager(this);
+    delegationService.setManager(this);
     accountStateCallBack.setManager(this);
     trieService.setManager(this);
     revokingStore.disable();
@@ -717,8 +726,8 @@ public class Manager {
         throw new BalanceInsufficientException("reduceAssetAmount failed !");
       }
     } else if (amount > 0 &&
-            !account.addAssetAmountV2(AssetID.getBytes(), amount, this)) {
-        throw new BalanceInsufficientException("addAssetAmount failed !");
+        !account.addAssetAmountV2(AssetID.getBytes(), amount, this)) {
+      throw new BalanceInsufficientException("addAssetAmount failed !");
     }
     accountStore.put(account.getAddress().toByteArray(), account);
   }
@@ -1320,7 +1329,6 @@ public class Manager {
     VMConfig.initAllowTvmConstantinople(dynamicPropertiesStore.getAllowTvmConstantinople());
     VMConfig.initAllowTvmSolidity059(dynamicPropertiesStore.getAllowTvmSolidity059());
 
-
     trace.init(blockCap, eventPluginLoaded);
     trace.checkIsConstant();
     trace.exec();
@@ -1796,8 +1804,14 @@ public class Manager {
     this.getWitnessStore().put(witnessCapsule.getAddress().toByteArray(), witnessCapsule);
 
     try {
-      adjustAllowance(witnessCapsule.getAddress().toByteArray(),
-          getDynamicPropertiesStore().getWitnessPayPerBlock());
+      if (getDynamicPropertiesStore().allowChangeDelegation()) {
+        delegationService.payBlockReward(witnessCapsule.getAddress().toByteArray(),
+            getDynamicPropertiesStore().getWitnessPayPerBlock());
+        delegationService.payStandbyWitness();
+      } else {
+        adjustAllowance(witnessCapsule.getAddress().toByteArray(),
+            getDynamicPropertiesStore().getWitnessPayPerBlock());
+      }
     } catch (BalanceInsufficientException e) {
       logger.warn(e.getMessage(), e);
     }

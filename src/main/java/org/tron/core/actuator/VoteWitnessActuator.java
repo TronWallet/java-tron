@@ -174,6 +174,9 @@ public class VoteWitnessActuator extends AbstractActuator {
       votesCapsule = votesStore.get(ownerAddress);
     }
 
+    //
+    dbManager.getDelegationService().withdrawReward(ownerAddress, getDeposit());
+
     accountCapsule.clearVotes();
     votesCapsule.clearNewVotes();
 
@@ -193,6 +196,7 @@ public class VoteWitnessActuator extends AbstractActuator {
       deposit.putAccountValue(accountCapsule.createDbKey(), accountCapsule);
       deposit.putVoteValue(ownerAddress, votesCapsule);
     }
+    //
 
   }
 

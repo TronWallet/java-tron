@@ -182,6 +182,9 @@ public class DynamicPropertiesStore extends TronStoreWithRevoking<BytesCapsule> 
   //Used only for account state root, once，value is {0,1} allow is 1
   private static final byte[] ALLOW_ACCOUNT_STATE_ROOT = "ALLOW_ACCOUNT_STATE_ROOT".getBytes();
 
+  private static final byte[] CURRENT_CYCLE_NUMBER = "CURRENT_CYCLE_NUMBER".getBytes();
+  private static final byte[] CHANGE_DELEGATION = "CHANGE_DELEGATION".getBytes();
+
 
   @Autowired
   private DynamicPropertiesStore(@Value("properties") String dbName) {
@@ -1352,16 +1355,15 @@ public class DynamicPropertiesStore extends TronStoreWithRevoking<BytesCapsule> 
 
   public void saveAllowTvmSolidity059(long value) {
     this.put(ALLOW_TVM_SOLIDITY_059,
-            new BytesCapsule(ByteArray.fromLong(value)));
+        new BytesCapsule(ByteArray.fromLong(value)));
   }
 
   public long getAllowTvmSolidity059() {
     return Optional.ofNullable(getUnchecked(ALLOW_TVM_SOLIDITY_059))
-            .map(BytesCapsule::getData)
-            .map(ByteArray::toLong)
-            .orElseThrow(() -> new IllegalArgumentException("not found ALLOW_TVM_SOLIDITY_059"));
+        .map(BytesCapsule::getData)
+        .map(ByteArray::toLong)
+        .orElseThrow(() -> new IllegalArgumentException("not found ALLOW_TVM_SOLIDITY_059"));
   }
-
 
 
   public void saveAvailableContractType(byte[] value) {
@@ -1752,5 +1754,33 @@ public class DynamicPropertiesStore extends TronStoreWithRevoking<BytesCapsule> 
 
   public boolean allowAccountStateRoot() {
     return getAllowAccountStateRoot() == 1;
+  }
+
+  public long getCurrentCycleNumber() {
+    return Optional.ofNullable(getUnchecked(CURRENT_CYCLE_NUMBER))
+        .map(BytesCapsule::getData)
+        .map(ByteArray::toLong)
+        .orElse(0L);
+  }
+
+  public void saveCurrentCycleNumber(long number) {
+    this.put(CURRENT_CYCLE_NUMBER, new BytesCapsule(ByteArray.fromLong(number)));
+  }
+
+  public void saveChangeDelegation(long number) {
+    this.put(CHANGE_DELEGATION,
+        new BytesCapsule(ByteArray.fromLong(number)));
+  }
+
+  public long getChangeDelegation() {
+    return Optional.ofNullable(getUnchecked(CHANGE_DELEGATION))
+        .map(BytesCapsule::getData)
+        .map(ByteArray::toLong)
+        .orElse(0L);
+  }
+
+  public boolean allowChangeDelegation() {
+    return true;
+//    return getChangeDelegation() == 1;
   }
 }
