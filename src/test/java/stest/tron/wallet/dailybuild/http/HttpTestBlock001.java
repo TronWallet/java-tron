@@ -260,9 +260,9 @@ public class HttpTestBlock001 {
     String testKey002 = "7400E3D0727F8A61041A8E8BF86599FE5597CE19DE451E59AED07D60967A5E25";
     byte[] fromAddress = PublicMethed.getFinalAddress(testKey002);
     Long duration = HttpMethed.getBlockByNumForResponse(httpnode, 4942435, times);
-    /*    Long duration = HttpMethed.getAccountForResponse(httpnode, fromAddress, times);*/
-  /*    Long duration = HttpMethed.getTransactionByIdForResponse(httpnode,
-      "a265fc457551fd9cfa55daec0550268b1a2da54018cc700f1559454836de411c", times);*/
+    //Long duration = HttpMethed.getAccountForResponse(httpnode, fromAddress, times);
+    //Long duration = HttpMethed.getTransactionByIdForResponse(httpnode,
+    // "a265fc457551fd9cfa55daec0550268b1a2da54018cc700f1559454836de411c", times);
     logger.info("Total duration  : " + duration);
     logger.info("Average duration: " + duration / times);
   }

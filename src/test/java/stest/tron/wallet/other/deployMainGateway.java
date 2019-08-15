@@ -32,7 +32,8 @@ import stest.tron.wallet.common.client.utils.PublicMethed;
 public class deployMainGateway {
 
 
-  private final String testDepositTrx = "324a2052e491e99026442d81df4d2777292840c1b3949e20696c49096c6bacb7";
+  private final String testDepositTrx =
+      "324a2052e491e99026442d81df4d2777292840c1b3949e20696c49096c6bacb7";
   private final byte[] testDepositAddress = PublicMethed.getFinalAddress(testDepositTrx);
   private Long maxFeeLimit = Configuration.getByPath("testng.conf")
       .getLong("defaultParameter.maxFeeLimit");
@@ -62,7 +63,6 @@ public class deployMainGateway {
 
   @BeforeClass(enabled = true)
   public void beforeClass() {
-//    PublicMethed.printAddress(testKeyFordeposit);
     channelFull = ManagedChannelBuilder.forTarget(fullnode)
         .usePlaintext(true)
         .build();
@@ -92,10 +92,8 @@ public class deployMainGateway {
 
     String deployTxid = PublicMethed
         .deployContractWithConstantParame(contractName, abi, code, "constructor(address)",
-            parame, "",
-            maxFeeLimit,
-            0L, 100, null, testKeyFordeposit, depositAddress
-            , blockingStubFull);
+            parame, "", maxFeeLimit, 0L, 100,
+            null, testKeyFordeposit, depositAddress, blockingStubFull);
     PublicMethed.waitProduceNextBlock(blockingStubFull);
 
     Optional<TransactionInfo> infoById = PublicMethed
@@ -109,7 +107,7 @@ public class deployMainGateway {
         blockingStubFull);
     Assert.assertNotNull(smartContract.getAbi());
 
-    String outputPath = "./src/test/resources/mainChainGatewayAddress" ;
+    String outputPath = "./src/test/resources/mainChainGatewayAddress";
     try {
       File mainChainFile = new File(outputPath);
       Boolean cun = mainChainFile.createNewFile();
@@ -119,7 +117,7 @@ public class deployMainGateway {
 
       out.close();
       writer.close();
-    }catch (Exception e){
+    } catch (Exception e) {
       e.printStackTrace();
     }
 

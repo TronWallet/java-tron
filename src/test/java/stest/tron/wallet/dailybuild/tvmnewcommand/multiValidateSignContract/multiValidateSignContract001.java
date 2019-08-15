@@ -220,7 +220,8 @@ public class multiValidateSignContract001 {
     Assert.assertEquals("SUCCESS", transactionExtention.getResult().getCode().toString());
   }
 
-  @Test(enabled = true, description = "Extra long addresses and signatures array test pure multivalidatesign")
+  @Test(enabled = true, description = "Extra long addresses and "
+      + "signatures array test pure multivalidatesign")
   public void test05ExtraLongArray() {
     PublicMethed.waitProduceNextBlock(blockingStubFull);
     List<Object> signatures = new ArrayList<>();
@@ -244,7 +245,8 @@ public class multiValidateSignContract001 {
     logger.info("Message = " + transactionExtention.getResult().getMessage().toStringUtf8());
     Assert
         .assertEquals(
-            "class org.tron.common.runtime.vm.program.Program$OutOfTimeException : CPU timeout for 'ISZERO' operation executing",
+            "class org.tron.common.runtime.vm.program.Program$OutOfTimeException "
+                + ": CPU timeout for 'ISZERO' operation executing",
             transactionExtention.getResult().getMessage().toStringUtf8());
     Assert
         .assertEquals("CONTRACT_EXE_ERROR", transactionExtention.getResult().getCode().toString());

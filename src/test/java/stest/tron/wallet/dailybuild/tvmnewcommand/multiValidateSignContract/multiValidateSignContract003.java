@@ -79,7 +79,8 @@ public class multiValidateSignContract003 {
   }
 
 
-  @Test(enabled = true, description = "Extra long addresses and signatures array test multivalidatesign")
+  @Test(enabled = true, description = "Extra long addresses and "
+      + "signatures array test multivalidatesign")
   public void test01ExtraLongArray() {
     String txid = PublicMethed
         .sendcoinGetTransactionId(contractExcAddress, 1000000000L, testNetAccountAddress,
