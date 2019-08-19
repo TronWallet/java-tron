@@ -1,4 +1,4 @@
-package org.tron.core.actuator;
+package org.tron.core.services;
 
 import com.google.protobuf.ByteString;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import org.tron.core.db.Manager;
 import org.tron.core.exception.BalanceInsufficientException;
 import org.tron.protos.Protocol.Vote;
 
-@Slf4j
+@Slf4j(topic = "delegation")
 @Component
 public class DelegationService {
 
@@ -53,6 +53,7 @@ public class DelegationService {
   }
 
   public void payBlockReward(byte[] witnessAddress, long value) {
+    logger.info("pay {} block reward {}", Hex.toHexString(witnessAddress), value);
     long cycle = manager.getDynamicPropertiesStore().getCurrentCycleNumber();
     manager.getDelegationStore().addReward(cycle, witnessAddress, value);
   }
