@@ -89,6 +89,27 @@ public class DelegationStore extends TronStoreWithRevoking<BytesCapsule> {
     }
   }
 
+  public void setBrokerage(long cycle, byte[] address, int brokerage) {
+    put(buildBrokerageKey(cycle, address), new BytesCapsule(ByteArray.fromInt(brokerage)));
+  }
+
+  public int getBrokerage(long cycle, byte[] address) {
+    BytesCapsule bytesCapsule = get(buildBrokerageKey(cycle, address));
+    if (bytesCapsule == null) {
+      return 0;
+    } else {
+      return ByteArray.toInt(bytesCapsule.getData());
+    }
+  }
+
+  public void setBrokerage(byte[] address, int brokerage) {
+    setBrokerage(-1, address, brokerage);
+  }
+
+  public int getBrokerage(byte[] address) {
+    return getBrokerage(-1, address);
+  }
+
   private byte[] buildVoteKey(long cycle, byte[] address) {
     return (cycle + "-" + address + "-vote").getBytes();
   }
@@ -103,6 +124,10 @@ public class DelegationStore extends TronStoreWithRevoking<BytesCapsule> {
 
   private byte[] buildEndCycleKey(byte[] address) {
     return ("end-" + Hex.toHexString(address)).getBytes();
+  }
+
+  private byte[] buildBrokerageKey(long cycle, byte[] address) {
+    return (cycle + "-" + address + "-brokerage").getBytes();
   }
 
 }

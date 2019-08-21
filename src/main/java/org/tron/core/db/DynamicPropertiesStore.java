@@ -1780,7 +1780,6 @@ public class DynamicPropertiesStore extends TronStoreWithRevoking<BytesCapsule> 
   }
 
   public boolean allowChangeDelegation() {
-    return true;
-//    return getChangeDelegation() == 1;
+    return getChangeDelegation() == 1;
   }
 }

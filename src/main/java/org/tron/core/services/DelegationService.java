@@ -2,6 +2,7 @@ package org.tron.core.services;
 
 import com.google.protobuf.ByteString;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import lombok.Setter;
@@ -46,6 +47,7 @@ public class DelegationService {
     if (voteSum > 0) {
       for (ByteString b : witnessAddressList) {
         long pay = (long) (getWitnesseByAddress(b).getVoteCount() * ((double) totalPay / voteSum));
+        logger.info("pay {} stand reward {}", Hex.toHexString(b.toByteArray()), pay);
         manager.getDelegationStore().addReward(cycle, b.toByteArray(), pay);
       }
     }
@@ -73,34 +75,39 @@ public class DelegationService {
     }
     long beginCycle = delegationStore.getBeginCycle(address);
     long endCycle = delegationStore.getEndCycle(address);
+    long currentCycle = dynamicPropertiesStore.getCurrentCycleNumber();
     long reward = 0;
+    int brokerage = 0;
+    if (beginCycle == currentCycle) {
+      return;
+    }
     //withdraw the latest cycle reward
-    if (beginCycle + 1 == endCycle) {
+    if (beginCycle + 1 == endCycle && beginCycle < currentCycle) {
       AccountCapsule account = delegationStore.getAccountVote(beginCycle, address);
+      brokerage = delegationStore.getBrokerage(beginCycle, address);
       if (account != null) {
-        reward = computeReward(beginCycle, account);
+        reward = computeReward(beginCycle, account, brokerage);
       }
       beginCycle += 1;
     }
     //
-    endCycle = dynamicPropertiesStore.getCurrentCycleNumber();
+    endCycle = currentCycle;
     if (accountCapsule == null || CollectionUtils.isEmpty(accountCapsule.getVotesList())) {
       manager.getDelegationStore().setBeginCycle(address,
           dynamicPropertiesStore.getCurrentCycleNumber());
       return;
     }
     if (beginCycle < endCycle) {
+      brokerage = delegationStore.getBrokerage(address);
       for (long cycle = beginCycle; cycle < endCycle; cycle++) {
-        reward += computeReward(cycle, accountCapsule);
+        reward += computeReward(cycle, accountCapsule, brokerage);
       }
-      try {
-        manager.adjustAllowance(address, reward);
-      } catch (BalanceInsufficientException e) {
-        logger.error("withdrawReward error: {},{}", Hex.toHexString(address), reward, e);
-      }
+      adjustAllowance(address, reward);
+
       delegationStore.setBeginCycle(address, endCycle);
       delegationStore.setEndCycle(address, endCycle + 1);
       delegationStore.setAccountVote(endCycle, address, accountCapsule);
+      delegationStore.setBrokerage(endCycle, address, brokerage);
     }
   }
 
@@ -108,7 +115,7 @@ public class DelegationService {
 
   }
 
-  private long computeReward(long cycle, AccountCapsule accountCapsule) {
+  private long computeReward(long cycle, AccountCapsule accountCapsule, int brokerage) {
     long reward = 0;
     for (Vote vote : accountCapsule.getVotesList()) {
       long totalReward = manager.getDelegationStore()
@@ -121,12 +128,29 @@ public class DelegationService {
       }
       long userVote = vote.getVoteCount();
       reward += (long) ((double) (userVote / totalVote) * totalReward);
+      if (!Arrays.equals(vote.getVoteAddress().toByteArray(),
+          accountCapsule.getAddress().toByteArray())) {
+        long brokerageAmount = (brokerage / 100) * reward;
+        reward -= brokerageAmount;
+        adjustAllowance(vote.getVoteAddress().toByteArray(), brokerageAmount);
+      }
     }
     return reward;
   }
 
   public WitnessCapsule getWitnesseByAddress(ByteString address) {
     return this.manager.getWitnessStore().get(address.toByteArray());
+  }
+
+  private void adjustAllowance(byte[] address, long amount) {
+    try {
+      if (amount <= 0) {
+        return;
+      }
+      manager.adjustAllowance(address, amount);
+    } catch (BalanceInsufficientException e) {
+      logger.error("withdrawReward error: {},{}", Hex.toHexString(address), address, e);
+    }
   }
 
   private long getEndCycle(byte[] address) {
