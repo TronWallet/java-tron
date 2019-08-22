@@ -45,6 +45,8 @@ public class UnfreezeBalanceActuator extends AbstractActuator {
       throw new ContractExeException(e.getMessage());
     }
     byte[] ownerAddress = unfreezeBalanceContract.getOwnerAddress().toByteArray();
+    //
+    dbManager.getDelegationService().withdrawReward(ownerAddress, getDeposit());
 
     AccountCapsule accountCapsule = dbManager.getAccountStore().get(ownerAddress);
     long oldBalance = accountCapsule.getBalance();
@@ -203,8 +205,6 @@ public class UnfreezeBalanceActuator extends AbstractActuator {
     } else {
       votesCapsule = dbManager.getVotesStore().get(ownerAddress);
     }
-
-    dbManager.getDelegationService().withdrawReward(ownerAddress, getDeposit());
 
     accountCapsule.clearVotes();
     votesCapsule.clearNewVotes();

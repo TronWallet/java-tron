@@ -46,8 +46,9 @@ public class DelegationService {
     long cycle = manager.getDynamicPropertiesStore().getCurrentCycleNumber();
     if (voteSum > 0) {
       for (ByteString b : witnessAddressList) {
-        long pay = (long) (getWitnesseByAddress(b).getVoteCount() * ((double) totalPay / voteSum));
-        logger.info("pay {} stand reward {}", Hex.toHexString(b.toByteArray()), pay);
+        double eachVotePay = (double) totalPay / voteSum;
+        long pay = (long) (getWitnesseByAddress(b).getVoteCount() * eachVotePay);
+        logger.debug("pay {} stand reward {}", Hex.toHexString(b.toByteArray()), pay);
         manager.getDelegationStore().addReward(cycle, b.toByteArray(), pay);
       }
     }
@@ -55,7 +56,7 @@ public class DelegationService {
   }
 
   public void payBlockReward(byte[] witnessAddress, long value) {
-    logger.info("pay {} block reward {}", Hex.toHexString(witnessAddress), value);
+    logger.debug("pay {} block reward {}", Hex.toHexString(witnessAddress), value);
     long cycle = manager.getDynamicPropertiesStore().getCurrentCycleNumber();
     manager.getDelegationStore().addReward(cycle, witnessAddress, value);
   }
@@ -85,8 +86,11 @@ public class DelegationService {
     if (beginCycle + 1 == endCycle && beginCycle < currentCycle) {
       AccountCapsule account = delegationStore.getAccountVote(beginCycle, address);
       brokerage = delegationStore.getBrokerage(beginCycle, address);
+      logger.info("latest cycle reward {},{}", beginCycle, account.getVotesList());
       if (account != null) {
         reward = computeReward(beginCycle, account, brokerage);
+        adjustAllowance(address, reward);
+        reward = 0;
       }
       beginCycle += 1;
     }
@@ -103,12 +107,14 @@ public class DelegationService {
         reward += computeReward(cycle, accountCapsule, brokerage);
       }
       adjustAllowance(address, reward);
-
-      delegationStore.setBeginCycle(address, endCycle);
-      delegationStore.setEndCycle(address, endCycle + 1);
-      delegationStore.setAccountVote(endCycle, address, accountCapsule);
-      delegationStore.setBrokerage(endCycle, address, brokerage);
     }
+    delegationStore.setBeginCycle(address, endCycle);
+    delegationStore.setEndCycle(address, endCycle + 1);
+    delegationStore.setAccountVote(endCycle, address, accountCapsule);
+    delegationStore.setBrokerage(endCycle, address, brokerage);
+    logger.info("adjust {} allowance {}, now currentCycle {}, beginCycle {}, endCycle {}, "
+            + "brokerage {}, " + "account vote {},", Hex.toHexString(address), reward, currentCycle,
+        beginCycle, endCycle, brokerage, accountCapsule.getVotesList());
   }
 
   public void queryReward(byte[] address) {
@@ -127,10 +133,15 @@ public class DelegationService {
             .getVoteCount();
       }
       long userVote = vote.getVoteCount();
-      reward += (long) ((double) (userVote / totalVote) * totalReward);
+      double voteRate = (double) userVote / totalVote;
+      reward += voteRate * totalReward;
+      logger.debug("computeReward {} {},{},{},{}",
+          Hex.toHexString(vote.getVoteAddress().toByteArray()),
+          userVote, totalVote, totalReward, reward);
       if (!Arrays.equals(vote.getVoteAddress().toByteArray(),
-          accountCapsule.getAddress().toByteArray())) {
-        long brokerageAmount = (brokerage / 100) * reward;
+          accountCapsule.getAddress().toByteArray()) && brokerage > 0) {
+        double brokerageRate = (double) brokerage / 100;
+        long brokerageAmount = (long) (brokerageRate * reward);
         reward -= brokerageAmount;
         adjustAllowance(vote.getVoteAddress().toByteArray(), brokerageAmount);
       }
@@ -147,7 +158,9 @@ public class DelegationService {
       if (amount <= 0) {
         return;
       }
+      logger.info("before {}", manager.getAccountStore().get(address));
       manager.adjustAllowance(address, amount);
+      logger.info("end {}", manager.getAccountStore().get(address));
     } catch (BalanceInsufficientException e) {
       logger.error("withdrawReward error: {},{}", Hex.toHexString(address), address, e);
     }

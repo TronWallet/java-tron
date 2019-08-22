@@ -379,15 +379,15 @@ public class WitnessController {
           witnessStore.put(witnessCapsule.createDbKey(), witnessCapsule);
         });
       }
-      //update the delegation cycle
-      if (manager.getDynamicPropertiesStore().allowChangeDelegation()) {
-        manager.getDynamicPropertiesStore().saveCurrentCycleNumber(
-            manager.getDynamicPropertiesStore().getCurrentCycleNumber() + 1);
-      }
 
       logger.info(
           "updateWitness,before:{} ", StringUtil.getAddressStringList(currentWits)
               + ",\nafter:{} " + StringUtil.getAddressStringList(newWits));
+    }
+    //update the delegation cycle
+    if (manager.getDynamicPropertiesStore().allowChangeDelegation()) {
+      manager.getDynamicPropertiesStore().saveCurrentCycleNumber(
+          manager.getDynamicPropertiesStore().getCurrentCycleNumber() + 1);
     }
   }
 
