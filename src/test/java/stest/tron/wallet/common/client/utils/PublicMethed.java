@@ -5813,4 +5813,83 @@ public class PublicMethed {
       }
     }
   }
+
+
+  /**
+   * constructor.
+   */
+
+  public static Return transferAssetForReturn(byte[] to, byte[] assertName, long amount,
+      byte[] address,
+      String priKey, WalletGrpc.WalletBlockingStub blockingStubFull) {
+    Wallet.setAddressPreFixByte(CommonConstant.ADD_PRE_FIX_BYTE_MAINNET);
+    ECKey temKey = null;
+    try {
+      BigInteger priK = new BigInteger(priKey, 16);
+      temKey = ECKey.fromPrivate(priK);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    final ECKey ecKey = temKey;
+
+    Contract.TransferAssetContract.Builder builder = Contract.TransferAssetContract.newBuilder();
+    ByteString bsTo = ByteString.copyFrom(to);
+    ByteString bsName = ByteString.copyFrom(assertName);
+    ByteString bsOwner = ByteString.copyFrom(address);
+    builder.setToAddress(bsTo);
+    builder.setAssetName(bsName);
+    builder.setOwnerAddress(bsOwner);
+    builder.setAmount(amount);
+
+    Contract.TransferAssetContract contract = builder.build();
+    TransactionExtention transaction = blockingStubFull.transferAsset2(contract);
+
+    if (transaction == null) {
+      return transaction.getResult();
+    }
+    Return ret = transaction.getResult();
+    return ret;
+//    if (!ret.getResult()) {
+//      System.out.println("Code = " + ret.getCode());
+//      System.out.println("Message = " + ret.getMessage().toStringUtf8());
+//      return ret;
+//    } else {
+//      System.out.println("Code = " + ret.getCode());
+//      System.out.println("Message = " + ret.getMessage().toStringUtf8());
+//    }
+  }
+
+
+  /**
+   * constructor.
+   */
+
+  public static Return sendcoinForReturn(byte[] to, long amount, byte[] owner, String priKey,
+      WalletGrpc.WalletBlockingStub blockingStubFull) {
+    Wallet.setAddressPreFixByte(CommonConstant.ADD_PRE_FIX_BYTE_MAINNET);
+    //String priKey = testKey002;
+    ECKey temKey = null;
+    try {
+      BigInteger priK = new BigInteger(priKey, 16);
+      temKey = ECKey.fromPrivate(priK);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    final ECKey ecKey = temKey;
+
+    Contract.TransferContract.Builder builder = Contract.TransferContract.newBuilder();
+    ByteString bsTo = ByteString.copyFrom(to);
+    ByteString bsOwner = ByteString.copyFrom(owner);
+    builder.setToAddress(bsTo);
+    builder.setOwnerAddress(bsOwner);
+    builder.setAmount(amount);
+
+    Contract.TransferContract contract = builder.build();
+    TransactionExtention transaction = blockingStubFull.createTransaction2(contract);
+    if (transaction == null) {
+      return transaction.getResult();
+    }
+    Return ret = transaction.getResult();
+    return ret;
+  }
 }
