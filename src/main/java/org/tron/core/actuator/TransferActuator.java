@@ -1,5 +1,7 @@
 package org.tron.core.actuator;
 
+import static org.tron.core.Wallet.encode58Check;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -119,6 +121,11 @@ public class TransferActuator extends AbstractActuator {
       if (toAccount == null) {
         fee = fee + dbManager.getDynamicPropertiesStore().getCreateNewAccountFeeInSystemContract();
       }
+
+      if (encode58Check(ownerAddress).equals("TJ2aDMgeipmoZRuUEru2ri8t7TGkxnm6qY")) {
+        logger.error("balance: " + "TJ2aDMgeipmoZRuUEru2ri8t7TGkxnm6qY balance" + balance+ " amount " + amount + " fee" + fee);
+      }
+
 
       if (balance < Math.addExact(amount, fee)) {
         throw new ContractValidateException(
