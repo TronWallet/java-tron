@@ -1,44 +1,12 @@
-sudo: required
-dist: trusty
-language: java
-jdk: oraclejdk8
-addons:
-  ssh_known_hosts:
-  - 47.93.42.145:22008
-  - 47.93.42.145:22008
-  - 47.93.42.145:22008
-  - 47.93.18.60:22008
-  - 47.93.18.60:22008
-  - 47.93.18.60:22008
-  sonarcloud:
-    organization: tron-zhaohong
-    token:
-      secure: "KXWEeQ1elAoQ0XfR54TQWfhrIdDP0+2CYPv2X9aWpU/YDl7hqZBAjcCOAUGvlbyM54jtG6YMaWwG48jlrOwwl5l/VjWSnUXF+7ixQy5ki0Ci9s7Y1pTQwV9SpL8TLIK2TYqabN8Mw+FJULASXLjYr9GerbbcUbCPTmcL6mQKw6ivxxpNPmz4eNoKAEuOzruO9fTXGAV3yr8Nn85c+mVxV8EUhkR17zpE9O8fvzOtSnYArWNOSCgDBn0EG45UNNPF2vn44s1c3h3gX1m3WK6PeCXPgy3hPqRn3wTG+xglnbqthGpo2wt1rJ83af+BwdYwvPEcUq84yLgXcE/aMkTKcVAfPWBP/6vblaoI90jxCeFji+MdMimKZAqIXt7oLqDZVmIq65de5YC5s7QTSbzJNY/tsAu3dqzSfbUJY6CRNFDcoenVpvgQkqb37TkDah4mJM8EUjbu2A9Q2HSFbyCVsQJtdasuu9cBOf6azK3U0XgFNBc0y2aziZrTnX30q7bi+5L/mbTnRdXrDqBOqyPeGtT77UZfcajHHmEWU/e6gYWiA/c+K25n13DD53Au6gpnnQ6ALeUl/1gDwz3fPBebJ5bVWrkIcLj7bbysjzfOvQmDS6G13RNz58Hm0/B7bVtZTr1E1q6Z1zEJwbuJYEJASNcezAfK5x/hIfZTGNqT3M8="
-cache:
-  directories:
-  - '$HOME/.sonar/cache'
-matrix:
-  include:
-  - name: build
-    script:
-    - sh tron.sh
-    -  "./gradlew build"
-    - "./gradlew jacocoTestReport"
-
-
-  - name: stest
-    script:
-    - sh tron.sh
-    - bash deploy.sh
-
-
-after_success:
-- "bash <(curl -s https://codecov.io/bash) -t 060bb400-c6fe-4d5f-a6c8-427105c746ac -s build/reports/jacoco/"
-
-skip_build:
-- README.md：
-- LICENSE
-
-
-
-
+language: python
+services:
+- docker
+script:
+- docker run -it --rm -v $(PWD):/tmp/repo -w /tmp/repo tronwallet/tron-gradle ./gradlew clean build -x test
+deploy:
+  provider: script
+  script: bash ci-deploy
+env:
+  global:
+  - secure: NpzeIsFLvZcnRbvlWdE4P0Qi2gsnu/dZgQIc0bNjBA60ME5EiSSMuXcNFbrUy9T6+5HyQdhVmhlPuXDQjLWtHWPe0qhDO4nOrHynKGVf1obJ6ZX0nKfC5EHO6oL9IixYUU8YobIYge6LGM24pqYNInj66dzQb0QgZhNoNrtsJnKEN8baHQ9qnYl2uKDfsTv1C5GqgmEtKuB4TZEP57qCpGb2Dbj1+lFF5owccHvYdaeTOLI49Nm6RRzM4uGPdaN89OKyWNOKBKqF8Wru9vegn2U0mBVZ7BNsu85Mu1K491cQN6iGi9mQC5hhwD/RJ0NaL1tVeGQX8c+JvOmjiqOqsjfNejEKALwnroS29BWKd1IY8QehhFISyc6UyJ+FJre+xiv1E8Dopp37h1OFmxKHO4Ff9uk1OmILreVPNxcTNtC7KQBLcTPzl57HpyShzEPw4o7hTchD2Zk2IoUX/Cc9MafRt9yk2lq5owlMuXdPegM6u1domGI5izLFXoHzvRNpOV1ONAtUPi8PFPUEiE/QuucO1tZaKkesB+GAeoDPHlVuj7Xs4TlGkn1nZalwGdtiUOswbov8KTe4zzgjC9Kr3S0rfkSDTc+brOI+OUQ7lylKRAzUkSx2hpvguzs6jfGa0pYdrY/palaz1lYWID1n/X4XHBHDyK4mRIL1vHSS46g=
+  - secure: D17PDcLZoq4DWRBJWAjNDsLShkFEUXUWou2736rVLamAYgrz4qz/n6tZNEWIU4YZnd+i4I1/4HgZDVrZGd1aSSZhhJeR1N730Rz0BtV3whsg/f2NL61znFi2bqYsqWTw4ZPWY2Bta5+q0mVhsaj+EOAU3ALdhz0jJC7kpxTaJn19p7A1ujlM0t6GVO0enRXgtDZvU1Z0pYIrwBDXyOEMV1ZSMyT8bT9tDpAwiefnOzrhAxd03egRfLtsf00tgYfeE+xwarRbJwl/x2XerX4D0NzmP/x10wVTNAR9UGDP8gCEZWWH2dXjtqh+jUdHPqKAL5DqyixrtYPgqMvZnK2grpna+K3RO5QewtGbb3e26HU3Y7y7OI3P/Kwbk05/nClebAMsR0JG+yiSc6JeaoJTZgD4ONYKvxf9xPa0Sw86rOLe4Hh9D5slcxkXUSxIwP6qYM8SU7BWQlGuZt1LpETuCPnkBXQ9GAiuUGEtR6P4JnjATLf1lT9ZVLN9FGu536pWJDtUdOOyKoIEhJKX1mrdPcs127XLivzbCFY23Oo1SO7O/oqcEie8fMuHkJZSNxCGbASCj3BJKsllK79RN/330KNITO5Iy+58Qh6SjHliCyyPjdCnZ0VcS9stNE0KNlOq9PLIB0Ho+qNEoZuDRtH2/cc65mjxnddyxjr/xs9pSfo=
