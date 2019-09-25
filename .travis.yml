@@ -2,7 +2,7 @@ language: python
 services:
 - docker
 script:
-- docker run -it --rm -v $(PWD):/tmp/repo -w /tmp/repo tronwallet/tron-gradle ./gradlew clean build -x test
+- docker run -it --rm -v $(pwd):/tmp/repo -w /tmp/repo tronwallet/tron-gradle ./gradlew clean build -x test
 deploy:
   provider: script
   script: bash ci-deploy
