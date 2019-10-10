@@ -18,7 +18,7 @@ deploy:
     secure: GA0rgZyduqOVlmZ5ABq3zL1nvE/dzSOdR+sUrf2MtPXPube+SEC/+3cE6l5k1M/A6KQ8B6HfSlK1SuoUAgKPLinf1JWTiMYxBHVbQ5ecsjR3wvhHnlfKPt9l0Zm/xnr5zGxXWMfhIok0u/7mqHXo9DsiKHGPOkGGE6etkLSDcmJXqkGHGeBky0nGMHzCFz15mL4ai5lMKQjq5jVoCeOWZ5PRlOia8K9fLnAUkcsELVKzTmEHooyrYU7ktV6UqTeqovRiZaSPRPO3+nFGSZyZAb43vrrd82rk9lGO2Njg8+1p0CNMJ0+Edhnx7jfDzzhIuyXQHGNPkSqWYTrCoZYG1bw9LYqxadP7/Q22npSEjnn20plMAeUMUVZq0dA9SminJYLtVfl2LYnk8SO42qgob7OVUQDccunbq2u4zbRNst7eY+Gz18QHgC5cgsv1pZSNteFZ4nLxQniyJR/JG9kpR5NbeGO3RzU9+dV0ePCDsN8k9UDSWQcJPYsViyRpgRVkrmSi8q2kqmbVPhJAi1vI0TMs+15cuu2WquVfPS7IhiUVwGtxXNhTTkzEk4kA+FsA+kXKxp3BXXzJAM22QcKz//N6f3gNIVRKanGNlFbooFr+Fxr+xVYayYyiRaLFszQoT1epLRNSD2TzA/Hk71/jCA5cqtMooaSLXwU+h28Ix+4=
   file:
     - build/libs/FullNode.jar
-    - build/libs/KeyStoreFactory.jar
+    - build/libs/KeystoreFactory.jar
     - build/libs/SolidityNode.jar
   skip_cleanup: true
   on:
