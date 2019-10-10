@@ -12,6 +12,7 @@ before_deploy:
   - git config --local user.email "devops@tronwallet.me"
   - export TRAVIS_TAG=$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
   - git tag $TRAVIS_TAG
+  - git push origin $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
