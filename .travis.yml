@@ -1,6 +1,8 @@
 dist: bionic
-language: java
-jdk: oraclejdk8
+language: python
+services:
+- docker
 script:
 - |
-  ./gradlew build
+  docker run -it --rm -v $(pwd):/tmp/repo \
+    -w /tmp/repo tronwallet/tron-gradle ./gradlew build
