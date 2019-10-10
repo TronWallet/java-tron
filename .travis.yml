@@ -24,7 +24,7 @@ deploy:
   skip_cleanup: true
   on:
     repo: TronWallet/java-tron
-    branch: master
+    tags: true
 notifications:
   slack:
     rooms:
