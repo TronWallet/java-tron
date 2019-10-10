@@ -6,3 +6,25 @@ script:
 - |
   docker run -it --rm -v $(pwd):/tmp/repo \
     -w /tmp/repo tronwallet/tron-gradle ./gradlew build
+before_deploy:
+  # Set up git user name and tag this commit
+  - git config --local user.name "TronWallet DevOps"
+  - git config --local user.email "devops@tronwallet.me"
+  - export TRAVIS_TAG=$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
+  - git tag $TRAVIS_TAG
+deploy:
+  provider: releases
+  api_key:
+    secure: GA0rgZyduqOVlmZ5ABq3zL1nvE/dzSOdR+sUrf2MtPXPube+SEC/+3cE6l5k1M/A6KQ8B6HfSlK1SuoUAgKPLinf1JWTiMYxBHVbQ5ecsjR3wvhHnlfKPt9l0Zm/xnr5zGxXWMfhIok0u/7mqHXo9DsiKHGPOkGGE6etkLSDcmJXqkGHGeBky0nGMHzCFz15mL4ai5lMKQjq5jVoCeOWZ5PRlOia8K9fLnAUkcsELVKzTmEHooyrYU7ktV6UqTeqovRiZaSPRPO3+nFGSZyZAb43vrrd82rk9lGO2Njg8+1p0CNMJ0+Edhnx7jfDzzhIuyXQHGNPkSqWYTrCoZYG1bw9LYqxadP7/Q22npSEjnn20plMAeUMUVZq0dA9SminJYLtVfl2LYnk8SO42qgob7OVUQDccunbq2u4zbRNst7eY+Gz18QHgC5cgsv1pZSNteFZ4nLxQniyJR/JG9kpR5NbeGO3RzU9+dV0ePCDsN8k9UDSWQcJPYsViyRpgRVkrmSi8q2kqmbVPhJAi1vI0TMs+15cuu2WquVfPS7IhiUVwGtxXNhTTkzEk4kA+FsA+kXKxp3BXXzJAM22QcKz//N6f3gNIVRKanGNlFbooFr+Fxr+xVYayYyiRaLFszQoT1epLRNSD2TzA/Hk71/jCA5cqtMooaSLXwU+h28Ix+4=
+  file:
+    - build/libs/FullNode.jar
+    - build/libs/KeyStoreFactory.jar
+    - build/libs/SolidityNode.jar
+  skip_cleanup: true
+  on:
+    repo: TronWallet/java-tron
+    branch: master
+notifications:
+  slack:
+    rooms:
+      secure: sJ/kfjtcRoCF+7Uwsl4WQbqQm54YXvQd+QSMFivuCSOaxnDM4RmEQ5C+Sulkpu6Sq4Ff383a4M3erYxuQmPuen784H70BpgqgMpz427ueTp1SaoUbz8ntfOusKmpNxiy8a9wLkQymvbMvZANrQPa0gTTrXVyg6nF2/31yvoaggh1uNr1gS8fZP2uy2/y3jUebGGirxhxJCS9aveoUKe0gNV5SWvG/+JGvtaEdJznzIXN4ZNMrXw5FaGFU2JA4BQN9S1AKAaq2eDSeyvaIqDClZvO8GQ2Xm3bjU9f5jjVOcwiyPrxJStX6TfncSfIRAfSkVkOnmdTryGqIhQR8s9P8HjHRqGNIb3cqI+BdyEcpWfVIZE+BqxCE6ap0gEmr7+vLk3NGhfdY9kUP3HYdfDTN7JyhKjMDCoReQI1ECi+RLDKsFKwmJKXCYUiiJzOC8OSyKOZ6u15C7+o/ZVpE13Ayg3izx22EkFeM8ivMg0B9OogmVLr8vLavecIQ3vXjFGRlVLXnifGRIHuURE+kAAqd1OXq+fQSXG80ezV9EaC0USotzGASNrxKzG6dPI7tVUghQ0Cyl5f/F+MKVhkJRcLDObDB9otd6q3oSb7gyXBVVIRnzqcmTZI795UXFjlonAOQAdRU08qY6gFnWejGJ3hY2YgfFnp4kX98je87MwzS2U=
