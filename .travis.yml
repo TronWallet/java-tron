@@ -7,12 +7,12 @@ script:
   docker run -it --rm -v $(pwd):/tmp/repo \
     -w /tmp/repo tronwallet/tron-gradle ./gradlew build
 before_deploy:
-  # Set up git user name and tag this commit
-  - git config --local user.name "TronWallet DevOps"
-  - git config --local user.email "devops@tronwallet.me"
-  - export TRAVIS_TAG=v$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
-  - git tag $TRAVIS_TAG
-  - git push origin $TRAVIS_TAG
+- |
+  git config --local user.name "TronWallet DevOps"
+  git config --local user.email "devops@tronwallet.me"
+  export TRAVIS_TAG=v$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
+  git tag $TRAVIS_TAG -m "release ${TRAVIS_TAG} [skip ci]"
+  git push origin $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
@@ -24,7 +24,7 @@ deploy:
   skip_cleanup: true
   on:
     repo: TronWallet/java-tron
-    tags: true
+    branch: master
 notifications:
   slack:
     rooms:
