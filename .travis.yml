@@ -8,11 +8,11 @@ script:
     -w /tmp/repo tronwallet/tron-gradle ./gradlew build
 before_deploy:
 - |
-  git config --local user.name "TronWallet DevOps"
-  git config --local user.email "devops@tronwallet.me"
+  git config --local user.name "Travis CI"
+  git config --local user.email "builds@travis-ci.com"
   export TRAVIS_TAG=v$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
-  git tag $TRAVIS_TAG -m "release ${TRAVIS_TAG} [skip ci]"
-  git push origin $TRAVIS_TAG
+  git tag $TRAVIS_TAG -a -m "release ${TRAVIS_TAG}"
+  git push --tags $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
@@ -24,7 +24,12 @@ deploy:
   skip_cleanup: true
   on:
     repo: TronWallet/java-tron
+    tags: false
     branch: master
+# excludes version tags
+branches:
+  except:
+    - /^*-v[0-9]/
 notifications:
   slack:
     rooms:
