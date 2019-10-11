@@ -5,14 +5,24 @@ services:
 script:
 - |
   docker run -it --rm -v $(pwd):/tmp/repo \
-    -w /tmp/repo tronwallet/tron-gradle ./gradlew build
+    -w /tmp/repo tronwallet/tron-gradle ./gradlew clean build -x test
 before_deploy:
 - |
-  git config --local user.name "Travis CI"
-  git config --local user.email "builds@travis-ci.com"
+  mkdir -p ~/.ssh
+  echo "Host github.com" >> ~/.ssh/config
+  echo "        StrictHostKeyChecking no" >> ~/.ssh/config
+  chmod 600 ~/.ssh/config
+  echo $GH_DEPLOY_KEY | base64 -d > java-tron-deploy.enc
+  openssl aes-256-cbc -K $encrypted_630cbb7a821d_key -iv $encrypted_630cbb7a821d_iv -in java-tron-deploy.enc -out java-tron-deploy -d
+  chmod 0400 java-tron-deploy
+  eval "$(ssh-agent -s)"
+  ssh-add java-tron-deploy
+  git remote set-url origin git@github.com:TronWallet/java-tron.git
+  git config --local user.name "GettyIO DevOps"
+  git config --local user.email "devops@getty.io"
   export TRAVIS_TAG=v$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
-  git tag $TRAVIS_TAG -a -m "release ${TRAVIS_TAG}"
-  git push --tags $TRAVIS_TAG
+  git tag $TRAVIS_TAG -a -m "${TRAVIS_TAG} [skip ci]"
+  git push --tags
 deploy:
   provider: releases
   api_key:
@@ -29,7 +39,7 @@ deploy:
 # excludes version tags
 branches:
   except:
-    - /^*-v[0-9]/
+    - /^v[0-9].*/
 notifications:
   slack:
     rooms:
