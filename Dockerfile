@@ -1,5 +1,8 @@
 FROM debian:stretch
 
+LABEL role=java-tron
+LABEL version=v3.6.5
+
 ENV TRON_PATH=/opt/tron
 
 USER root
@@ -18,7 +21,7 @@ RUN	groupadd -g 1000 tron \
 
 USER tron
 
-RUN curl -LO https://raw.githubusercontent.com/tronprotocol/tron-deployment/master/private_net_config.conf 
+RUN curl -LO https://raw.githubusercontent.com/tronprotocol/tron-deployment/master/private_net_config.conf
 
 COPY --chown=tron:tron build/libs/FullNode.jar build/libs/SolidityNode.jar ${TRON_PATH}/
 
