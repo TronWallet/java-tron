@@ -215,138 +215,74 @@ task lint(type: Checkstyle) {
     ignoreFailures = false
 }
 
-tasks.matching { it instanceof Test }.all {
-    testLogging.events = ["failed", "passed", "skipped"]
-}
+subprojects {
+    apply plugin: "java"
+    apply plugin: "jacoco"
+    apply plugin: "maven"
+    apply plugin: "maven-publish"
 
-if (project.hasProperty("mainClass")) {
-    mainClassName = mainClass
-}
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
-sourceSets {
-    main {
-        proto {
-            srcDir 'src/main/protos'
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    buildscript {
+        repositories {
+            mavenCentral()
+            jcenter()
+            maven { url 'https://jitpack.io' }
         }
-        java {
-            srcDir 'src/main/gen'
-            srcDir 'src/main/java'
-        }
-    }
-
-}
-
-protobuf {
-    generatedFilesBaseDir = "$projectDir/src/"
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.5.1-1"
-    }
-
-    plugins {
-        grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.9.0'
+        dependencies {
+            classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
+            classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
         }
     }
-    generateProtoTasks {
-        all().each { task ->
-            task.builtins {
-                java { outputSubDir = "gen" }
-            }
-        }
-        all()*.plugins {
-            grpc {
-                outputSubDir = "gen"
-            }
-        }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://repo.spring.io/plugins-release' }
+        maven { url 'https://jitpack.io' }
+    }
+
+    dependencies {
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+        compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.25'
+        compile "org.slf4j:jcl-over-slf4j:1.7.25"
+        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+        compile group: 'org.projectlombok', name: 'lombok', version: '1.18.2'
+        compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
+        compile "com.google.code.findbugs:jsr305:3.0.0"
+        compile group: 'org.springframework', name: 'spring-context', version: '4.2.4.RELEASE'
+        compile group: 'org.springframework', name: 'spring-tx', version: '4.2.4.RELEASE'
+        compile "org.apache.commons:commons-lang3:3.4"
+        compile group: 'org.apache.commons', name: 'commons-math', version: '2.2'
+        compile "org.apache.commons:commons-collections4:4.0"
+        compile group: 'joda-time', name: 'joda-time', version: '2.3'
+
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = "sources"
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+//        archives jar
+        archives sourcesJar
+    }
+
+    tasks.withType(AbstractArchiveTask) {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
     }
 }
 
-run {
-    if (project.hasProperty('witness')) {
-        standardInput = System.in
-        args = ['--witness']
+task copyToParent(type: Copy) {
+    into "$buildDir/libs"
+    subprojects {
+        from tasks.withType(Jar)
     }
 }
 
-shadowJar {
-    baseName = 'java-tron'
-    classifier = null
-    version = null
-}
-
-test {
-    testLogging {
-        exceptionFormat = 'full'
-    }
-    jacoco {
-        append = true
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-        classDumpDir = file("$buildDir/jacoco/classpathdumps")
-    }
-}
-
-task stest(type: Test) {
-
-    useTestNG {
-        suites(file('src/test/resources/testng.xml'))
-        parallel 'tests'
-        threadCount 4
-
-    }
-
-    testLogging {
-        exceptionFormat = 'full'
-        showStackTraces = "true"
-    }
-
-    jacoco {
-        append = false
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-        classDumpDir = file("$buildDir/jacoco/classpathdumps")
-    }
-}
-
-task dailyBuild(type: Test) {
-    useTestNG {
-        suites(file('src/test/resources/daily-build.xml'))
-        parallel 'tests'
-        threadCount 1
-    }
-}
-
-
-jacocoTestReport {
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
-    }
-    executionData = files('build/jacoco/jacocoTest.exec')
-}
-
-def binaryRelease(taskName, jarName, mainClass) {
-    return tasks.create("${taskName}", Jar) {
-        baseName = jarName
-        version = null
-        from(sourceSets.main.output) {
-            include "/**"
-        }
-
-        from {
-            configurations.compile.collect {
-                it.isDirectory() ? it : zipTree(it)
-            }
-        }
-
-        manifest {
-            attributes "Main-Class": "${mainClass}"
-        }
-    }
-}
-
-artifacts {
-    archives(binaryRelease('buildSolidityNodeJar', 'SolidityNode', 'org.tron.program.SolidityNode'),
-            binaryRelease('buildFullNodeJar', 'FullNode', 'org.tron.program.FullNode'),
-            binaryRelease('buildKeystoreFactoryJar', 'KeystoreFactory', 'org.tron.program.KeystoreFactory'),
-            binaryRelease('buildDBConvertJar', 'DBConvert', 'org.tron.program.DBConvert'))
-}
+build.finalizedBy(copyToParent) 
