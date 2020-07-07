@@ -20,7 +20,7 @@ before_deploy:
   git remote set-url origin git@github.com:TronWallet/java-tron.git
   git config --local user.name "GettyIO DevOps"
   git config --local user.email "devops@getty.io"
-  export TRAVIS_TAG=v$(cat src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
+  export TRAVIS_TAG=v$(cat framework/src/main/java/org/tron/program/Version.java | grep "version =" | grep -o '"[^"]*"' | tr -d '"')
   git tag $TRAVIS_TAG -a -m "${TRAVIS_TAG} [skip ci]"
   git push --tags
 deploy:
